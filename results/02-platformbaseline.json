@@ -1,0 +1,601 @@
+{
+  "WindowStart": "2026-08-21T08:57:40.884631012Z",
+  "WindowEnd": "2026-08-21T08:58:10.96355531Z",
+  "CollectedAt": "2026-08-21T08:58:10.96355531Z",
+  "SampleCount": 4,
+  "SampleInterval": "10s",
+  "SampleDuration": "30s",
+  "NodeMetrics": [
+    {
+      "Name": "harvester-node-0",
+      "CPUMilli": 2767,
+      "MemoryBytes": 12277413888
+    }
+  ],
+  "NodeAllocations": [
+    {
+      "Name": "harvester-node-0",
+      "CPURequestsMilli": 4672,
+      "CPULimitsMilli": 7200,
+      "MemoryRequestsBytes": 8244953088,
+      "MemoryLimitsBytes": 12918456320
+    }
+  ],
+  "NamespaceSummaries": [
+    {
+      "Name": "cattle-capi-system",
+      "Pods": 1,
+      "CPUMilli": 9,
+      "MemoryBytes": 69746688,
+      "TopPods": [
+        {
+          "Namespace": "cattle-capi-system",
+          "Name": "capi-controller-manager-f4cdd48bd-w2g2x",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 9,
+          "MemoryBytes": 69746688
+        }
+      ]
+    },
+    {
+      "Name": "cattle-fleet-local-system",
+      "Pods": 1,
+      "CPUMilli": 3,
+      "MemoryBytes": 266055680,
+      "TopPods": [
+        {
+          "Namespace": "cattle-fleet-local-system",
+          "Name": "fleet-agent-5cdb98c6fc-tk5c9",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 3,
+          "MemoryBytes": 266055680
+        }
+      ]
+    },
+    {
+      "Name": "cattle-fleet-system",
+      "Pods": 3,
+      "CPUMilli": 14,
+      "MemoryBytes": 325394432,
+      "TopPods": [
+        {
+          "Namespace": "cattle-fleet-system",
+          "Name": "fleet-controller-785f8cff97-hhqjk",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 9,
+          "MemoryBytes": 227885056
+        },
+        {
+          "Namespace": "cattle-fleet-system",
+          "Name": "gitjob-6c65d4f7fd-f2lv8",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 3,
+          "MemoryBytes": 56227840
+        },
+        {
+          "Namespace": "cattle-fleet-system",
+          "Name": "helmops-568b8774b8-7w47d",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 2,
+          "MemoryBytes": 41281536
+        }
+      ]
+    },
+    {
+      "Name": "cattle-monitoring-system",
+      "Pods": 7,
+      "CPUMilli": 326,
+      "MemoryBytes": 1486420992,
+      "TopPods": [
+        {
+          "Namespace": "cattle-monitoring-system",
+          "Name": "prometheus-rancher-monitoring-prometheus-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 50,
+          "MemoryBytes": 669058048
+        },
+        {
+          "Namespace": "cattle-monitoring-system",
+          "Name": "rancher-monitoring-prometheus-adapter-6db5df9455-ks2sj",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 243,
+          "MemoryBytes": 336005120
+        },
+        {
+          "Namespace": "cattle-monitoring-system",
+          "Name": "rancher-monitoring-grafana-57486fbffb-7zrm7",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 15,
+          "MemoryBytes": 331177984
+        },
+        {
+          "Namespace": "cattle-monitoring-system",
+          "Name": "rancher-monitoring-kube-state-metrics-55d8c7d85f-28khk",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 8,
+          "MemoryBytes": 45826048
+        },
+        {
+          "Namespace": "cattle-monitoring-system",
+          "Name": "alertmanager-rancher-monitoring-alertmanager-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 2,
+          "MemoryBytes": 39505920
+        }
+      ]
+    },
+    {
+      "Name": "cattle-system",
+      "Pods": 4,
+      "CPUMilli": 56,
+      "MemoryBytes": 1353638912,
+      "TopPods": [
+        {
+          "Namespace": "cattle-system",
+          "Name": "rancher-6885d79df8-hc7nj",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 47,
+          "MemoryBytes": 1132487680
+        },
+        {
+          "Namespace": "cattle-system",
+          "Name": "rancher-webhook-b69df4c8-xz7gk",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 6,
+          "MemoryBytes": 174655488
+        },
+        {
+          "Namespace": "cattle-system",
+          "Name": "system-upgrade-controller-5dc7c44677-h4bfs",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 3,
+          "MemoryBytes": 43282432
+        },
+        {
+          "Namespace": "cattle-system",
+          "Name": "harvester-cluster-repo-67b9c4d8c8-59tpq",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 1,
+          "MemoryBytes": 3213312
+        }
+      ]
+    },
+    {
+      "Name": "cattle-turtles-system",
+      "Pods": 1,
+      "CPUMilli": 3,
+      "MemoryBytes": 99571712,
+      "TopPods": [
+        {
+          "Namespace": "cattle-turtles-system",
+          "Name": "rancher-turtles-controller-manager-bcc676864-wk9xk",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 3,
+          "MemoryBytes": 99571712
+        }
+      ]
+    },
+    {
+      "Name": "default",
+      "Pods": 1,
+      "CPUMilli": 16,
+      "MemoryBytes": 14131200,
+      "TopPods": [
+        {
+          "Namespace": "default",
+          "Name": "benchctl",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 16,
+          "MemoryBytes": 14131200
+        }
+      ]
+    },
+    {
+      "Name": "harvester-system",
+      "Pods": 22,
+      "CPUMilli": 237,
+      "MemoryBytes": 3415981056,
+      "TopPods": [
+        {
+          "Namespace": "harvester-system",
+          "Name": "harvester-59fc4944d-ldp7d",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 37,
+          "MemoryBytes": 826967040
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "virt-operator-6b76587558-b4wnl",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 57,
+          "MemoryBytes": 347600896
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "virt-api-7c64467dc4-nzk5q",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 8,
+          "MemoryBytes": 225544192
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "cdi-operator-5666b4ff6-6lqt6",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 22,
+          "MemoryBytes": 204820480
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "harvester-webhook-586d4b549f-4rgs2",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 11,
+          "MemoryBytes": 204519424
+        }
+      ]
+    },
+    {
+      "Name": "kube-system",
+      "Pods": 16,
+      "CPUMilli": 734,
+      "MemoryBytes": 4303032320,
+      "TopPods": [
+        {
+          "Namespace": "kube-system",
+          "Name": "kube-apiserver-harvester-node-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 383,
+          "MemoryBytes": 3199389696
+        },
+        {
+          "Namespace": "kube-system",
+          "Name": "etcd-harvester-node-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 132,
+          "MemoryBytes": 351892480
+        },
+        {
+          "Namespace": "kube-system",
+          "Name": "kube-controller-manager-harvester-node-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 43,
+          "MemoryBytes": 210400256
+        },
+        {
+          "Namespace": "kube-system",
+          "Name": "rke2-canal-xdlh8",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 119,
+          "MemoryBytes": 140883968
+        },
+        {
+          "Namespace": "kube-system",
+          "Name": "rke2-traefik-wr4dj",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 2,
+          "MemoryBytes": 85125120
+        }
+      ]
+    },
+    {
+      "Name": "longhorn-system",
+      "Pods": 19,
+      "CPUMilli": 165,
+      "MemoryBytes": 864041984,
+      "TopPods": [
+        {
+          "Namespace": "longhorn-system",
+          "Name": "instance-manager-c43e6e4a4813022f082c0b1962a8d874",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 59,
+          "MemoryBytes": 267001856
+        },
+        {
+          "Namespace": "longhorn-system",
+          "Name": "longhorn-manager-b2x96",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 44,
+          "MemoryBytes": 227103744
+        },
+        {
+          "Namespace": "longhorn-system",
+          "Name": "longhorn-csi-plugin-ptzzc",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 5,
+          "MemoryBytes": 53032960
+        },
+        {
+          "Namespace": "longhorn-system",
+          "Name": "csi-provisioner-745fc9f696-q58t9",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 6,
+          "MemoryBytes": 46882816
+        },
+        {
+          "Namespace": "longhorn-system",
+          "Name": "csi-snapshotter-5ff7966987-g2wn9",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 3,
+          "MemoryBytes": 29466624
+        }
+      ]
+    }
+  ],
+  "GroupSummaries": [
+    {
+      "Name": "harvester-system/cdi",
+      "Pods": 4,
+      "CPUMilli": 55,
+      "MemoryBytes": 400287744,
+      "TopPods": [
+        {
+          "Namespace": "harvester-system",
+          "Name": "cdi-operator-5666b4ff6-6lqt6",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 22,
+          "MemoryBytes": 204820480
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "cdi-deployment-585bb479df-xr4xh",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 26,
+          "MemoryBytes": 137385984
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "cdi-apiserver-6d9b684fd9-nl86c",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 5,
+          "MemoryBytes": 33729536
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "cdi-uploadproxy-695f9bbb68-rzkcv",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 3,
+          "MemoryBytes": 24351744
+        }
+      ]
+    },
+    {
+      "Name": "harvester-system/core",
+      "Pods": 13,
+      "CPUMilli": 97,
+      "MemoryBytes": 2078908416,
+      "TopPods": [
+        {
+          "Namespace": "harvester-system",
+          "Name": "harvester-59fc4944d-ldp7d",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 37,
+          "MemoryBytes": 826967040
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "harvester-webhook-586d4b549f-4rgs2",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 11,
+          "MemoryBytes": 204519424
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "harvester-load-balancer-webhook-7795bd7598-lk9p9",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 1,
+          "MemoryBytes": 174372864
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "harvester-node-manager-webhook-59f8c7bd9b-zmrr6",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 4,
+          "MemoryBytes": 163969024
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "harvester-network-webhook-7789f4d967-lgt7s",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 6,
+          "MemoryBytes": 163209216
+        }
+      ]
+    },
+    {
+      "Name": "harvester-system/kubevirt",
+      "Pods": 5,
+      "CPUMilli": 85,
+      "MemoryBytes": 936784896,
+      "TopPods": [
+        {
+          "Namespace": "harvester-system",
+          "Name": "virt-operator-6b76587558-b4wnl",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 57,
+          "MemoryBytes": 347600896
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "virt-api-7c64467dc4-nzk5q",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 8,
+          "MemoryBytes": 225544192
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "virt-controller-5756956fdc-nv4pk",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 13,
+          "MemoryBytes": 130511872
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "virt-handler-s7tg5",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 5,
+          "MemoryBytes": 122828800
+        },
+        {
+          "Namespace": "harvester-system",
+          "Name": "virt-controller-5756956fdc-k94zw",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 4,
+          "MemoryBytes": 110299136
+        }
+      ]
+    },
+    {
+      "Name": "kube-system",
+      "Pods": 16,
+      "CPUMilli": 734,
+      "MemoryBytes": 4303032320,
+      "TopPods": [
+        {
+          "Namespace": "kube-system",
+          "Name": "kube-apiserver-harvester-node-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 383,
+          "MemoryBytes": 3199389696
+        },
+        {
+          "Namespace": "kube-system",
+          "Name": "etcd-harvester-node-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 132,
+          "MemoryBytes": 351892480
+        },
+        {
+          "Namespace": "kube-system",
+          "Name": "kube-controller-manager-harvester-node-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 43,
+          "MemoryBytes": 210400256
+        },
+        {
+          "Namespace": "kube-system",
+          "Name": "rke2-canal-xdlh8",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 119,
+          "MemoryBytes": 140883968
+        },
+        {
+          "Namespace": "kube-system",
+          "Name": "rke2-traefik-wr4dj",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 2,
+          "MemoryBytes": 85125120
+        }
+      ]
+    },
+    {
+      "Name": "longhorn-system",
+      "Pods": 19,
+      "CPUMilli": 165,
+      "MemoryBytes": 864041984,
+      "TopPods": [
+        {
+          "Namespace": "longhorn-system",
+          "Name": "instance-manager-c43e6e4a4813022f082c0b1962a8d874",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 59,
+          "MemoryBytes": 267001856
+        },
+        {
+          "Namespace": "longhorn-system",
+          "Name": "longhorn-manager-b2x96",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 44,
+          "MemoryBytes": 227103744
+        },
+        {
+          "Namespace": "longhorn-system",
+          "Name": "longhorn-csi-plugin-ptzzc",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 5,
+          "MemoryBytes": 53032960
+        },
+        {
+          "Namespace": "longhorn-system",
+          "Name": "csi-provisioner-745fc9f696-q58t9",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 6,
+          "MemoryBytes": 46882816
+        },
+        {
+          "Namespace": "longhorn-system",
+          "Name": "csi-snapshotter-5ff7966987-g2wn9",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 3,
+          "MemoryBytes": 29466624
+        }
+      ]
+    },
+    {
+      "Name": "management",
+      "Pods": 17,
+      "CPUMilli": 411,
+      "MemoryBytes": 3600828416,
+      "TopPods": [
+        {
+          "Namespace": "cattle-system",
+          "Name": "rancher-6885d79df8-hc7nj",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 47,
+          "MemoryBytes": 1132487680
+        },
+        {
+          "Namespace": "cattle-monitoring-system",
+          "Name": "prometheus-rancher-monitoring-prometheus-0",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 50,
+          "MemoryBytes": 669058048
+        },
+        {
+          "Namespace": "cattle-monitoring-system",
+          "Name": "rancher-monitoring-prometheus-adapter-6db5df9455-ks2sj",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 470,
+          "MemoryBytes": 449249280
+        },
+        {
+          "Namespace": "cattle-monitoring-system",
+          "Name": "rancher-monitoring-grafana-57486fbffb-7zrm7",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 15,
+          "MemoryBytes": 331177984
+        },
+        {
+          "Namespace": "cattle-fleet-local-system",
+          "Name": "fleet-agent-5cdb98c6fc-tk5c9",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 3,
+          "MemoryBytes": 266055680
+        }
+      ]
+    },
+    {
+      "Name": "other",
+      "Pods": 1,
+      "CPUMilli": 16,
+      "MemoryBytes": 14131200,
+      "TopPods": [
+        {
+          "Namespace": "default",
+          "Name": "benchctl",
+          "NodeName": "harvester-node-0",
+          "CPUMilli": 16,
+          "MemoryBytes": 14131200
+        }
+      ]
+    }
+  ],
+  "GrandTotal": {
+    "Pods": 75,
+    "CPUMilli": 1555,
+    "MemoryBytes": 12190949376
+  },
+  "PlatformGrandTotal": {
+    "Pods": 74,
+    "CPUMilli": 1547,
+    "MemoryBytes": 12183883776
+  }
+}

@@ -1,0 +1,65 @@
+Platform Baseline Summary
+=========================
+Collected at: 2026-08-21T08:58:10Z
+Window: 2026-08-21T08:57:40Z -> 2026-08-21T08:58:10Z
+Samples: 4 (interval 10s, duration 30s)
+
+Node Metrics (metrics.k8s.io)
+- harvester-node-0: CPU 2767m, Memory 11708 Mi
+
+Scheduler Allocation (requests/limits from pod specs)
+- harvester-node-0: requests CPU 4672m, Memory 7863 Mi | limits CPU 7200m, Memory 12320 Mi
+
+Namespace Breakdown
+- cattle-capi-system: 1 pods, CPU 9m, Memory 66 Mi
+- cattle-fleet-local-system: 1 pods, CPU 3m, Memory 253 Mi
+- cattle-fleet-system: 3 pods, CPU 14m, Memory 310 Mi
+- cattle-monitoring-system: 7 pods, CPU 326m, Memory 1417 Mi
+- cattle-system: 4 pods, CPU 56m, Memory 1290 Mi
+- cattle-turtles-system: 1 pods, CPU 3m, Memory 94 Mi
+- default: 1 pods, CPU 16m, Memory 13 Mi
+- harvester-system: 22 pods, CPU 237m, Memory 3257 Mi
+- kube-system: 16 pods, CPU 734m, Memory 4103 Mi
+- longhorn-system: 19 pods, CPU 165m, Memory 824 Mi
+
+Platform Groups
+- harvester-system/cdi: 4 pods, CPU 55m, Memory 381 Mi
+  harvester-system/cdi-operator-5666b4ff6-6lqt6: CPU 22m, Memory 195 Mi
+  harvester-system/cdi-deployment-585bb479df-xr4xh: CPU 26m, Memory 131 Mi
+  harvester-system/cdi-apiserver-6d9b684fd9-nl86c: CPU 5m, Memory 32 Mi
+  harvester-system/cdi-uploadproxy-695f9bbb68-rzkcv: CPU 3m, Memory 23 Mi
+- harvester-system/core: 13 pods, CPU 97m, Memory 1982 Mi
+  harvester-system/harvester-59fc4944d-ldp7d: CPU 37m, Memory 788 Mi
+  harvester-system/harvester-webhook-586d4b549f-4rgs2: CPU 11m, Memory 195 Mi
+  harvester-system/harvester-load-balancer-webhook-7795bd7598-lk9p9: CPU 1m, Memory 166 Mi
+  harvester-system/harvester-node-manager-webhook-59f8c7bd9b-zmrr6: CPU 4m, Memory 156 Mi
+  harvester-system/harvester-network-webhook-7789f4d967-lgt7s: CPU 6m, Memory 155 Mi
+- harvester-system/kubevirt: 5 pods, CPU 85m, Memory 893 Mi
+  harvester-system/virt-operator-6b76587558-b4wnl: CPU 57m, Memory 331 Mi
+  harvester-system/virt-api-7c64467dc4-nzk5q: CPU 8m, Memory 215 Mi
+  harvester-system/virt-controller-5756956fdc-nv4pk: CPU 13m, Memory 124 Mi
+  harvester-system/virt-handler-s7tg5: CPU 5m, Memory 117 Mi
+  harvester-system/virt-controller-5756956fdc-k94zw: CPU 4m, Memory 105 Mi
+- kube-system: 16 pods, CPU 734m, Memory 4103 Mi
+  kube-system/kube-apiserver-harvester-node-0: CPU 383m, Memory 3051 Mi
+  kube-system/etcd-harvester-node-0: CPU 132m, Memory 335 Mi
+  kube-system/kube-controller-manager-harvester-node-0: CPU 43m, Memory 200 Mi
+  kube-system/rke2-canal-xdlh8: CPU 119m, Memory 134 Mi
+  kube-system/rke2-traefik-wr4dj: CPU 2m, Memory 81 Mi
+- longhorn-system: 19 pods, CPU 165m, Memory 824 Mi
+  longhorn-system/instance-manager-c43e6e4a4813022f082c0b1962a8d874: CPU 59m, Memory 254 Mi
+  longhorn-system/longhorn-manager-b2x96: CPU 44m, Memory 216 Mi
+  longhorn-system/longhorn-csi-plugin-ptzzc: CPU 5m, Memory 50 Mi
+  longhorn-system/csi-provisioner-745fc9f696-q58t9: CPU 6m, Memory 44 Mi
+  longhorn-system/csi-snapshotter-5ff7966987-g2wn9: CPU 3m, Memory 28 Mi
+- management: 17 pods, CPU 411m, Memory 3434 Mi
+  cattle-system/rancher-6885d79df8-hc7nj: CPU 47m, Memory 1080 Mi
+  cattle-monitoring-system/prometheus-rancher-monitoring-prometheus-0: CPU 50m, Memory 638 Mi
+  cattle-monitoring-system/rancher-monitoring-prometheus-adapter-6db5df9455-ks2sj: CPU 470m, Memory 428 Mi
+  cattle-monitoring-system/rancher-monitoring-grafana-57486fbffb-7zrm7: CPU 15m, Memory 315 Mi
+  cattle-fleet-local-system/fleet-agent-5cdb98c6fc-tk5c9: CPU 3m, Memory 253 Mi
+- other: 1 pods, CPU 16m, Memory 13 Mi
+  default/benchctl: CPU 16m, Memory 13 Mi
+
+Grand Total: 75 pods, CPU 1555m, Memory 11626 Mi
+Platform Total: 74 pods, CPU 1547m, Memory 11619 Mi

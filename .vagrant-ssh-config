@@ -1,0 +1,27 @@
+Host pxe_server
+  HostName 192.168.121.85
+  User vagrant
+  Port 22
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /home/po/ipxe-examples/vagrant-pxe-harvester/.vagrant/machines/pxe_server/libvirt/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+
+Host harvester-node-0
+  HostName 192.168.0.30
+  User rancher
+  Port 22
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /home/po/.vagrant.d/insecure_private_keys/vagrant.key.ed25519
+  IdentityFile /home/po/.vagrant.d/insecure_private_keys/vagrant.key.rsa
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+

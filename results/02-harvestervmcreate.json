@@ -1,0 +1,102 @@
+{
+  "Name": "harvester-vm-create",
+  "Namespace": "default",
+  "RunID": "vmcreate-1787308625",
+  "Image": "quay.io/kubevirt/cirros-container-disk-demo:latest",
+  "ImageMode": "containerDisk",
+  "CPU": {
+    "Cores": 1,
+    "Sockets": 1,
+    "Threads": 1,
+    "MaxSockets": 4
+  },
+  "Memory": "64Mi",
+  "DiskBus": "virtio",
+  "RunStrategy": "Always",
+  "RequestedVMs": 5,
+  "RunningVMs": 5,
+  "StartedAt": "2026-08-21T10:37:05.298036479Z",
+  "FinishedAt": "2026-08-21T10:37:47.504483461Z",
+  "Steps": [
+    {
+      "Name": "prepare-image",
+      "Status": "Succeeded",
+      "Message": "Using containerDisk image quay.io/kubevirt/cirros-container-disk-demo:latest; no Harvester VirtualMachineImage resource is created in containerDisk mode",
+      "StartedAt": "2026-08-21T10:37:05.298040136Z",
+      "FinishedAt": "2026-08-21T10:37:05.298047293Z",
+      "DurationMS": 0
+    },
+    {
+      "Name": "create-vms",
+      "Status": "Succeeded",
+      "Message": "Created 5 VirtualMachine objects",
+      "StartedAt": "2026-08-21T10:37:05.298051779Z",
+      "FinishedAt": "2026-08-21T10:37:05.998604189Z",
+      "DurationMS": 700
+    },
+    {
+      "Name": "wait-running",
+      "Status": "Succeeded",
+      "Message": "5/5 VMIs reached Running",
+      "StartedAt": "2026-08-21T10:37:05.998888817Z",
+      "FinishedAt": "2026-08-21T10:37:46.244995713Z",
+      "DurationMS": 40246
+    },
+    {
+      "Name": "cleanup-vms",
+      "Status": "Succeeded",
+      "Message": "Deleted created VirtualMachine objects",
+      "StartedAt": "2026-08-21T10:37:46.24657252Z",
+      "FinishedAt": "2026-08-21T10:37:47.504481934Z",
+      "DurationMS": 1257
+    }
+  ],
+  "APICreateDuration": {
+    "MinMS": 48,
+    "P50MS": 68,
+    "P95MS": 426,
+    "P99MS": 426,
+    "MaxMS": 426,
+    "AvgMS": 140
+  },
+  "RunningDuration": {
+    "MinMS": 35651,
+    "P50MS": 35925,
+    "P95MS": 40855,
+    "P99MS": 40855,
+    "MaxMS": 40855,
+    "AvgMS": 37784
+  },
+  "VMs": [
+    {
+      "Name": "vmcreate-1787308625-000",
+      "Phase": "Running",
+      "APICreateDurationMS": 90,
+      "RunningDurationMS": 35925
+    },
+    {
+      "Name": "vmcreate-1787308625-001",
+      "Phase": "Running",
+      "APICreateDurationMS": 67,
+      "RunningDurationMS": 40855
+    },
+    {
+      "Name": "vmcreate-1787308625-002",
+      "Phase": "Running",
+      "APICreateDurationMS": 68,
+      "RunningDurationMS": 40788
+    },
+    {
+      "Name": "vmcreate-1787308625-003",
+      "Phase": "Running",
+      "APICreateDurationMS": 48,
+      "RunningDurationMS": 35700
+    },
+    {
+      "Name": "vmcreate-1787308625-004",
+      "Phase": "Running",
+      "APICreateDurationMS": 426,
+      "RunningDurationMS": 35651
+    }
+  ]
+}

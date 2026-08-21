@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: benchctl
+  namespace: default
+spec:
+  securityContext:
+    fsGroup: 1000
+  restartPolicy: Never
+  serviceAccountName: benchctl
+  initContainers:
+    - name: prepare-results
+      image: alpine:latest
+      command:
+        - /bin/sh
+        - -c
+      args:
+        - chown 1000:1000 /results && chmod 775 /results
+      volumeMounts:
+        - name: results
+          mountPath: /results
+  containers:
+    - name: benchctl
+      image: 192.168.0.1:5000/benchctl:dev
+      imagePullPolicy: Always
+      command:
+        - /bin/sh
+        - -c
+      args:
+        - /app/benchctl --test=harvester-vm-create --output-dir=/results
+      volumeMounts:
+        - name: results
+          mountPath: /results
+  volumes:
+    - name: results
+      hostPath:
+        path: /tmp/benchctl-results
+        type: DirectoryOrCreate

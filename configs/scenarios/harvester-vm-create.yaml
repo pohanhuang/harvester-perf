@@ -1,0 +1,26 @@
+name: harvester-vm-create
+steps:
+  - name: prepare-image
+    config:
+      mode: containerDisk
+      image: quay.io/kubevirt/cirros-container-disk-demo:latest
+  - name: create-vms
+    config:
+      namespace: default
+      count: 5
+      namePrefix: vmcreate
+      runStrategy: Always
+      cpuCores: 1
+      cpuSockets: 1
+      cpuThreads: 1
+      cpuMaxSockets: 4
+      memory: 64Mi
+      diskBus: virtio
+      terminationGracePeriodSeconds: 0
+  - name: wait-running
+    config:
+      timeout: 20m
+      pollInterval: 5s
+  - name: cleanup-vms
+    config:
+      enabled: true

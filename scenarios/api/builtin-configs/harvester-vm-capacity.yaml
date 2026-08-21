@@ -1,0 +1,25 @@
+name: harvester-vm-capacity
+steps:
+  - name: prepare-image
+    config:
+      mode: containerDisk
+      image: quay.io/kubevirt/cirros-container-disk-demo:latest
+  - name: create-batches
+    config:
+      namespace: default
+      batchSize: 1
+      maxVMs: 100000
+      waitTimeoutPerBatch: 10m
+      pollInterval: 5s
+      namePrefix: vmcapacity
+      runStrategy: Always
+      cpuCores: 1
+      cpuSockets: 1
+      cpuThreads: 1
+      cpuMaxSockets: 4
+      memory: 64Mi
+      diskBus: virtio
+      terminationGracePeriodSeconds: 0
+  - name: cleanup-vms
+    config:
+      enabled: true

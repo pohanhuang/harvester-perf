@@ -1,0 +1,22 @@
+Harvester VM Create Summary
+===========================
+Run ID: vmcreate-1787308625
+Namespace: default
+Image: quay.io/kubevirt/cirros-container-disk-demo:latest
+Image Mode: containerDisk
+CPU: cores=1 sockets=1 threads=1 maxSockets=4
+Memory: 64Mi
+Disk Bus: virtio
+Run Strategy: Always
+Started: 2026-08-21T10:37:05Z
+Finished: 2026-08-21T10:37:47Z
+VMIs Running: 5/5
+
+Steps:
+- prepare-image: Succeeded (0ms) Using containerDisk image quay.io/kubevirt/cirros-container-disk-demo:latest; no Harvester VirtualMachineImage resource is created in containerDisk mode
+- create-vms: Succeeded (700ms) Created 5 VirtualMachine objects
+- wait-running: Succeeded (40246ms) 5/5 VMIs reached Running
+- cleanup-vms: Succeeded (1257ms) Deleted created VirtualMachine objects
+
+API Create Duration: avg 140ms, p50 68ms, p95 426ms, p99 426ms, max 426ms
+Running Duration: avg 37784ms, p50 35925ms, p95 40855ms, p99 40855ms, max 40855ms

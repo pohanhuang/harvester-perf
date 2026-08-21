@@ -1,0 +1,150 @@
+{
+  "Name": "harvester-vm-capacity",
+  "Namespace": "default",
+  "RunID": "vmcapacity-1787309502",
+  "Image": "quay.io/kubevirt/cirros-container-disk-demo:latest",
+  "ImageMode": "containerDisk",
+  "CPU": {
+    "Cores": 1,
+    "Sockets": 1,
+    "Threads": 1,
+    "MaxSockets": 4
+  },
+  "Memory": "64Mi",
+  "BatchSize": 5,
+  "MaxVMs": 50,
+  "RunningVMs": 16,
+  "RequestedVMs": 20,
+  "FailedBatch": 4,
+  "Failure": "timeout waiting for batch 4: 16/20 Running",
+  "StartedAt": "2026-08-21T10:51:42.284767719Z",
+  "FinishedAt": "2026-08-21T11:04:07.590855832Z",
+  "Steps": [
+    {
+      "Name": "prepare-image",
+      "Status": "Succeeded",
+      "Message": "Using containerDisk image quay.io/kubevirt/cirros-container-disk-demo:latest; no Harvester VirtualMachineImage resource is created in containerDisk mode",
+      "StartedAt": "2026-08-21T10:51:42.284840359Z",
+      "FinishedAt": "2026-08-21T10:51:42.284845284Z",
+      "DurationMS": 0
+    },
+    {
+      "Name": "create-batches",
+      "Status": "Succeeded",
+      "Message": "Stopped at 16/20 Running: timeout waiting for batch 4: 16/20 Running",
+      "StartedAt": "2026-08-21T10:51:42.284919933Z",
+      "FinishedAt": "2026-08-21T11:04:05.661754759Z",
+      "DurationMS": 743376
+    },
+    {
+      "Name": "cleanup-vms",
+      "Status": "Succeeded",
+      "Message": "Deleted created VirtualMachine objects",
+      "StartedAt": "2026-08-21T11:04:05.661794314Z",
+      "FinishedAt": "2026-08-21T11:04:07.590854092Z",
+      "DurationMS": 1929
+    }
+  ],
+  "Batches": [
+    {
+      "Batch": 1,
+      "Created": 5,
+      "TotalRequested": 5,
+      "TotalRunning": 5,
+      "StartedAt": "2026-08-21T10:51:42.284920298Z",
+      "FinishedAt": "2026-08-21T10:52:19.630203347Z",
+      "DurationMS": 37345,
+      "RunningDuration": {
+        "MinMS": 32015,
+        "P50MS": 32335,
+        "P95MS": 37244,
+        "P99MS": 37244,
+        "MaxMS": 37244,
+        "AvgMS": 34182
+      },
+      "APICreateDuration": {
+        "MinMS": 49,
+        "P50MS": 100,
+        "P95MS": 251,
+        "P99MS": 251,
+        "MaxMS": 251,
+        "AvgMS": 114
+      }
+    },
+    {
+      "Batch": 2,
+      "Created": 5,
+      "TotalRequested": 10,
+      "TotalRunning": 10,
+      "StartedAt": "2026-08-21T10:52:19.63022473Z",
+      "FinishedAt": "2026-08-21T10:53:01.353892839Z",
+      "DurationMS": 41723,
+      "RunningDuration": {
+        "MinMS": 36241,
+        "P50MS": 36658,
+        "P95MS": 41609,
+        "P99MS": 41609,
+        "MaxMS": 41609,
+        "AvgMS": 38503
+      },
+      "APICreateDuration": {
+        "MinMS": 51,
+        "P50MS": 92,
+        "P95MS": 210,
+        "P99MS": 210,
+        "MaxMS": 210,
+        "AvgMS": 120
+      }
+    },
+    {
+      "Batch": 3,
+      "Created": 5,
+      "TotalRequested": 15,
+      "TotalRunning": 15,
+      "StartedAt": "2026-08-21T10:53:01.399694856Z",
+      "FinishedAt": "2026-08-21T10:53:59.25483246Z",
+      "DurationMS": 57855,
+      "RunningDuration": {
+        "MinMS": 49351,
+        "P50MS": 50399,
+        "P95MS": 57853,
+        "P99MS": 57853,
+        "MaxMS": 57853,
+        "AvgMS": 51647
+      },
+      "APICreateDuration": {
+        "MinMS": 217,
+        "P50MS": 664,
+        "P95MS": 869,
+        "P99MS": 869,
+        "MaxMS": 869,
+        "AvgMS": 599
+      }
+    },
+    {
+      "Batch": 4,
+      "Created": 5,
+      "TotalRequested": 20,
+      "TotalRunning": 16,
+      "StartedAt": "2026-08-21T10:53:59.255300116Z",
+      "FinishedAt": "2026-08-21T11:04:05.657147422Z",
+      "DurationMS": 606401,
+      "RunningDuration": {
+        "MinMS": 38968,
+        "P50MS": 38968,
+        "P95MS": 38968,
+        "P99MS": 38968,
+        "MaxMS": 38968,
+        "AvgMS": 38968
+      },
+      "APICreateDuration": {
+        "MinMS": 238,
+        "P50MS": 431,
+        "P95MS": 737,
+        "P99MS": 737,
+        "MaxMS": 737,
+        "AvgMS": 501
+      }
+    }
+  ]
+}

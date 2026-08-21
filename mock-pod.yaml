@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: benchctl-mock
+  namespace: default
+  labels:
+    app: benchctl-mock
+spec:
+  restartPolicy: Never
+  containers:
+    - name: mock
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -c
+        - echo "benchctl mock pod is running"; sleep 3600

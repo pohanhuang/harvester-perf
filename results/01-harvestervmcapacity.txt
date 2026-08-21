@@ -1,0 +1,16 @@
+Harvester VM Capacity Summary
+=============================
+Run ID: vmcapacity-1787309502
+Namespace: default
+Image: quay.io/kubevirt/cirros-container-disk-demo:latest
+VM Spec: cpu=1 memory=64Mi
+Batch Size: 5
+Max VMs: 50
+Running VMs: 16/20
+Failure: batch 4: timeout waiting for batch 4: 16/20 Running
+
+Batches:
+- batch 1: total 5/5 Running, duration 37345ms, running avg 34182ms p95 37244ms
+- batch 2: total 10/10 Running, duration 41723ms, running avg 38503ms p95 41609ms
+- batch 3: total 15/15 Running, duration 57855ms, running avg 51647ms p95 57853ms
+- batch 4: total 16/20 Running, duration 606401ms, running avg 38968ms p95 38968ms
