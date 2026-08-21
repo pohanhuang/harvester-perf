@@ -17,15 +17,15 @@ ClusterLoader2 project:
 
 ## Result Folders
 
-The checked-in result folders, such as `benchctl-results/` and `benchctl-results-1/`, are example outputs from earlier local runs.
+Current result will output as a folder, but within the pod. In current repo, you can check `results/`
 
-They are useful because they show what the current POC already produces:
+Currently, PoC provides
 
-- human-readable text summaries
-- machine-readable JSON summaries
-- one file per collected summary
+- platform baseline
+- vm creation time
+- vm capacity
 
-In other words, these folders are not framework inputs. They are sample benchmark artifacts that demonstrate the current output shape.
+Aline to Phase 1 in the [v1.7.1 Performance benchmark report](https://gist.github.com/pohanhuang/8a17d314b5fbd6b9833f43598e580d84#phase-1-idle-baseline-0-vms)
 
 ## How To Run
 
