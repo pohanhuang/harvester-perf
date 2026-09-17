@@ -59,20 +59,12 @@ func (s *DensitySuite) RunE(ctx context.Context, runID, namespace string, _ pkgs
 	if imageErr != nil {
 		return result, imageErr
 	}
-	return result, nil
-	// vmName := runID + "-vm"
-	// start = time.Now()
-	// vmErr := s.createAndWaitVM(ctx, vmName, runID, namespace, imageName, o)
-	// result.Results = append(result.Results, caseResult("vm-create", start, vmErr))
-	// return result, vmErr
-}
 
-func (s *DensitySuite) createAndWaitVM(ctx context.Context, name, runID, namespace, imageName string, o densityOptions) error {
 	imageID := fmt.Sprintf("%s/%s", namespace, imageName)
-	if err := resource.CreateVM(ctx, s.DynClientSet, name, namespace, runID, imageID, o.StorageClass); err != nil {
-		return err
-	}
-	return resource.WaitVM(ctx, s.DynClientSet, namespace, name, o.WaitTimeout)
+	start = time.Now()
+	vmErr := resource.CreateAndWaitVMs(ctx, s.DynClientSet, 1, namespace, runID, imageID, o.StorageClass, o.WaitTimeout)
+	result.Results = append(result.Results, caseResult("vm-create", start, vmErr))
+	return result, vmErr
 }
 
 func (s *DensitySuite) cleanup(ctx context.Context, namespace, runID string) {
