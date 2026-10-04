@@ -53,7 +53,7 @@ func TestBenchmarkOptionsDefaults(t *testing.T) {
 		GRPCClientCount:   DefaultClientCount,
 		GRPCConnCount:     DefaultConnCount,
 	}
-	actual, err := BenchmarkOptionsDefaults()
+	actual, err := BenchmarkOptionsDefaults(*pkgsuites.DefaultGlobalOptions())
 	if err != nil {
 		t.Fatalf("BenchmarkOptionsDefaults() returned an error: %v", err)
 	}

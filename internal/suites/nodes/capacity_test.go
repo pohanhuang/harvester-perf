@@ -4,10 +4,12 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	suites "github.com/harvester/hvperf/pkg/suites"
 )
 
 func TestCapacityOptionsDefaults(t *testing.T) {
-	got, err := CapacityOptionsDefaults()
+	got, err := CapacityOptionsDefaults(*suites.DefaultGlobalOptions())
 	if err != nil {
 		t.Fatalf("CapacityOptionsDefaults() error = %v, want nil", err)
 	}

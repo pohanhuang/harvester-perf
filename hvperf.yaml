@@ -1,12 +1,9 @@
 density:
-  concurrency: 10
-  perVMTimeout: 5m
+  batchSize: 10
+  maxVMs: 0
+  batchWaitTimeout: 5m
 
-  vmImage:
-    url: "https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img"
-
-  vm:
-    storageClass: longhorn
-    diskSize: 1Gi
+  vmi:
+    containerDisk: quay.io/kubevirt/cirros-container-disk-demo:latest
     memory: 90Mi
     cpu: 100m

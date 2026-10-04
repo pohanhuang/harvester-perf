@@ -62,7 +62,7 @@ func (s *NodeCapacitySuite) RunE(ctx context.Context, runID, namespace string, o
 		{
 			caseName: "node disk info",
 			caseFunc: func(ctx context.Context, caseName string) *suites.CaseResult {
-				o, err := CapacityOptionsDefaults()
+				o, err := CapacityOptionsDefaults(opts)
 				if err != nil {
 					return suites.NewCaseResultErrored(caseName, time.Now(), time.Now(), err)
 				}
@@ -223,8 +223,8 @@ type CapacityOptions struct {
 	PodReadyTimeout       time.Duration
 }
 
-func CapacityOptionsDefaults() (*CapacityOptions, error) {
-	sysOpts, err := options.FromOptions[*CapacityOptions](suites.DefaultGlobalOptions())
+func CapacityOptionsDefaults(opts suites.Options) (*CapacityOptions, error) {
+	sysOpts, err := options.FromOptions[*CapacityOptions](&opts)
 	if err != nil {
 		return nil, err
 	}

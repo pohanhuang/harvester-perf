@@ -1,0 +1,30 @@
+package density
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/harvester/hvperf/pkg/resource"
+)
+
+// Options is the density block of hvperf.yaml.
+type Options struct {
+	BatchSize    int           `yaml:"batchSize"`
+	MaxVMs       int           `yaml:"maxVMs"`
+	BatchWaitTimeout time.Duration `yaml:"batchWaitTimeout"`
+	VMI          resource.VMI  `yaml:"vmi"`
+}
+
+func (o Options) Validate() error {
+	if o.BatchSize <= 0 {
+		return fmt.Errorf("batchSize must be positive, got %d", o.BatchSize)
+	}
+	if o.BatchWaitTimeout <= 0 {
+		return fmt.Errorf("batchWaitTimeout must be positive, got %s", o.BatchWaitTimeout)
+	}
+	if o.VMI.ContainerDisk == "" {
+		return errors.New("vmi.containerDisk must not be empty")
+	}
+	return nil
+}

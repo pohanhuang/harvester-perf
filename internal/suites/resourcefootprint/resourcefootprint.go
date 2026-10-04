@@ -95,7 +95,7 @@ func (s *ResourceFootprintSuite) measureNodeAllocatable(ctx context.Context) *pk
 	return s.measure(ctx, queryAllocCPU, queryAllocMem)
 }
 
-func (s *ResourceFootprintSuite) RunE(ctx context.Context, runID, _ string, _ pkgsuites.Options) pkgsuites.SuiteResult {
+func (s *ResourceFootprintSuite) RunE(ctx context.Context, runID, _ string, opts pkgsuites.Options) pkgsuites.SuiteResult {
 	cases := []struct {
 		name    string
 		measure func() *pkgsuites.CaseResult
@@ -118,7 +118,7 @@ func (s *ResourceFootprintSuite) RunE(ctx context.Context, runID, _ string, _ pk
 		},
 	}
 
-	monitoringOpts, err := options.FromOptions[*resourceFootprintOptions](pkgsuites.DefaultGlobalOptions())
+	monitoringOpts, err := options.FromOptions[*resourceFootprintOptions](&opts)
 	if err != nil {
 		return pkgsuites.SuiteResult{
 			Name:  s.Name(),

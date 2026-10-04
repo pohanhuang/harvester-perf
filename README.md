@@ -50,8 +50,7 @@ repo root to tune suite parameters before running:
 
 ```yaml
 density:
-  concurrency: 10      # VMs to create in parallel
-  perVMTimeout: 5m     # per-VM boot timeout
+  batchWaitTimeout: 5m     # per-batch creation timeout
 
   vmImage:
     url: "https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img"

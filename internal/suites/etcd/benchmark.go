@@ -54,7 +54,7 @@ func (s *BenchmarkSuite) RunE(
 	namespace string,
 	opts pkgsuites.Options,
 ) pkgsuites.SuiteResult {
-	o, err := BenchmarkOptionsDefaults()
+	o, err := BenchmarkOptionsDefaults(opts)
 	if err != nil {
 		return pkgsuites.SuiteResult{
 			Name:  s.Name(),
@@ -494,8 +494,8 @@ type BenchmarkOptions struct {
 // BenchmarkOptionsDefaults returns the default options for the etcd benchmark
 // suite. It merges suite-specific options with the default global options for
 // the all test suites.
-func BenchmarkOptionsDefaults() (*BenchmarkOptions, error) {
-	sysOpts, err := options.FromOptions[*BenchmarkOptions](pkgsuites.DefaultGlobalOptions())
+func BenchmarkOptionsDefaults(opts pkgsuites.Options) (*BenchmarkOptions, error) {
+	sysOpts, err := options.FromOptions[*BenchmarkOptions](&opts)
 	if err != nil {
 		return nil, err
 	}

@@ -113,9 +113,19 @@ func ToSuiteParams(opts any) ([]*SuiteParam, error) {
 	return params, nil
 }
 
+// CapacityResult records the maximum resource count the cluster sustained
+// before a health gate or creation failure was observed.
+type CapacityResult struct {
+	Resource   string // e.g. "virtualmachines.kubevirt.io"
+	Max        int    // last batch count confirmed healthy before failure
+	Err        string // why the ramp stopped; alone does NOT cause ERROR state
+	CleanupErr string // cleanup failed; causes ERROR state
+}
+
 // CaseResult represents the result of a single test case execution. Err captures
 // errors that occur during the test case setup and cleanup.
 type CaseResult struct {
+	CapacityResults    []*CapacityResult
 	CmdResults         []*CmdResult
 	K8sResourceResults []*K8sResourceResult
 	MetricResults      []*MetricResult
@@ -203,6 +213,13 @@ func (c *CaseResult) FinalizeState() {
 		return
 	}
 
+	for _, cap := range c.CapacityResults {
+		if cap.CleanupErr != "" {
+			c.State = CaseResultStateErrored
+			return
+		}
+	}
+
 	for _, cr := range c.CmdResults {
 		if cr.Err != "" {
 			c.State = CaseResultStateErrored
@@ -252,6 +269,20 @@ func (c *CaseResult) String() string {
 	if c.State == CaseResultStateSkipped {
 		tab.Flush()
 		return strings.TrimSpace(stringBuilder.String())
+	}
+
+	for i, cap := range c.CapacityResults {
+		if i == 0 {
+			fmt.Fprintf(tab, "%sCapacity:\n", indent)
+		}
+		fmt.Fprintf(tab, "%s\tResource:\t%s\n", indent, cap.Resource)
+		fmt.Fprintf(tab, "%s\tMax:\t%d\n", indent, cap.Max)
+		if cap.Err != "" {
+			fmt.Fprintf(tab, "%s\tStopped:\t%s\n", indent, cap.Err)
+		}
+		if cap.CleanupErr != "" {
+			fmt.Fprintf(tab, "%s\tCleanupError:\t%s\n", indent, cap.CleanupErr)
+		}
 	}
 
 	for i, r := range c.CmdResults {
