@@ -19,6 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/kubectl/pkg/util/podutils"
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -77,7 +78,8 @@ func (s *DensitySuite) IsReadWrite() bool                     { return true }
 func (s *DensitySuite) SetClients(clients *pkgsuites.Clients) { s.Clients = clients }
 
 type densityGlobalOpts struct {
-	EtcdNamespace string `json:"EtcdNamespace"`
+	EtcdNamespace         string        `json:"EtcdNamespace"`
+	NamespaceReadyTimeout time.Duration `json:"NamespaceReadyTimeout"`
 }
 
 func (s *DensitySuite) RunE(ctx context.Context, runID, namespace string, opts pkgsuites.Options) (result pkgsuites.SuiteResult) {
@@ -99,6 +101,14 @@ func (s *DensitySuite) RunE(ctx context.Context, runID, namespace string, opts p
 	if params, err := pkgsuites.ToSuiteParams(o); err == nil {
 		result.Params = params
 	}
+	if _, err := pkgk8s.EnsureNamespace(ctx, s.Clients, namespace, global.NamespaceReadyTimeout); err != nil {
+		return pkgsuites.SuiteResult{
+			Name:  s.Name(),
+			RunID: runID,
+			Err:   fmt.Sprintf("namespace %s not ready: %v", namespace, err),
+		}
+	}
+	klog.V(3).InfoS("namespace is ready", "name", namespace, "suite", s.Name())
 
 	defer s.cleanupRunResult(namespace, runID, &result)
 	if err := s.warmup(ctx, o.VMI, namespace, runID, o.BatchWaitTimeout); err != nil {

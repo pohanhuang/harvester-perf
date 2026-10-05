@@ -75,6 +75,19 @@ func TestCountRunningVMIs(t *testing.T) {
 	}
 }
 
+func TestRunEReturnsNamespaceSetupError(t *testing.T) {
+	client := k8sfake.NewSimpleClientset()
+	client.PrependReactor("patch", "namespaces", func(k8stesting.Action) (bool, runtime.Object, error) {
+		return true, nil, errors.New("namespace unavailable")
+	})
+	s := &DensitySuite{Clients: &pkgsuites.Clients{K8sClientSet: client}}
+
+	result := s.RunE(context.Background(), "run", "benchmark", *pkgsuites.DefaultGlobalOptions())
+	if result.Name != s.Name() || result.RunID != "run" || !strings.Contains(result.Err, "namespace benchmark not ready: namespace unavailable") {
+		t.Fatalf("result = %+v", result)
+	}
+}
+
 func TestCreateVMIsInBatchesStopsOnFailure(t *testing.T) {
 	dyn := dynfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), map[schema.GroupVersionResource]string{resource.VMIGVR: "VirtualMachineInstanceList", corev1.SchemeGroupVersion.WithResource("pods"): "PodList"})
 	s := &DensitySuite{Clients: &pkgsuites.Clients{DynClientSet: dyn, K8sClientSet: healthyClient()}}
