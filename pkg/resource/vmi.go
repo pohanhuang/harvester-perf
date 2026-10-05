@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 	k8swatch "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/cache"
@@ -23,6 +24,9 @@ import (
 var VMIGVR = kubevirtv1.SchemeGroupVersion.WithResource("virtualmachineinstances")
 
 const RunLabel = "hvperf/run"
+
+// ErrStartupTimeout marks a clean startup deadline with no API errors observed.
+var ErrStartupTimeout = errors.New("VMI startup timed out")
 
 // VMI is the containerdisk workload shape used by the density suite.
 type VMI struct {
@@ -56,6 +60,7 @@ func CreateVMIs(ctx context.Context, client dynamic.Interface, vmis []VMI, inter
 }
 
 // WaitRunning watches VMIs by label selector until all named VMIs are Running.
+// A clean startup deadline wraps ErrStartupTimeout; other failures do not.
 func WaitRunning(ctx context.Context, client dynamic.Interface, ns, selector string, names []string) error {
 	if len(names) == 0 {
 		return nil
@@ -65,24 +70,30 @@ func WaitRunning(ctx context.Context, client dynamic.Interface, ns, selector str
 		pending[name] = true
 	}
 
-	lw := labelListWatch(ctx, client, ns, selector)
+	lw, apiErrors := labelListWatch(ctx, client, ns, selector)
 	_, err := watchtools.UntilWithSync(ctx, cache.ToListWatcherWithWatchListSemantics(lw, client),
 		&unstructured.Unstructured{}, nil, vmiRunningCondition(ctx, client, ns, pending))
 	if err == nil {
 		return nil
 	}
 
-	err = errors.Join(err, ctx.Err())
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-		for name := range pending {
-			probeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-			if vmiObj, getErr := client.Resource(VMIGVR).Namespace(ns).Get(probeCtx, name, metav1.GetOptions{}); getErr == nil {
-				err = errors.Join(err, vmiSchedulingError(probeCtx, client, ns, string(vmiObj.GetUID())))
-			}
-			cancel()
-		}
+	timedOut := errors.Is(ctx.Err(), context.DeadlineExceeded) && wait.Interrupted(err)
+	var apiErr error
+	select {
+	case apiErr = <-apiErrors:
+	default:
 	}
-	return fmt.Errorf("%d/%d VMIs not Running: %w", len(pending), len(names), err)
+	err = errors.Join(err, ctx.Err(), apiErr)
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		schedErrs, probeAPIErrs := probeStartupErrors(ctx, client, ns, pending)
+		apiErr = errors.Join(apiErr, probeAPIErrs)
+		err = errors.Join(err, schedErrs, probeAPIErrs)
+	}
+	err = fmt.Errorf("%d/%d VMIs not Running: %w", len(pending), len(names), err)
+	if timedOut && apiErr == nil {
+		return fmt.Errorf("%w: %w", ErrStartupTimeout, err)
+	}
+	return err
 }
 
 func vmiRunningCondition(ctx context.Context, client dynamic.Interface, ns string, pending map[string]bool) watchtools.ConditionFunc {
@@ -104,47 +115,80 @@ func vmiRunningCondition(ctx context.Context, client dynamic.Interface, ns strin
 			return len(pending) == 0, nil
 		case kubevirtv1.Failed:
 			probeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-			schedErr := vmiSchedulingError(probeCtx, client, ns, string(obj.GetUID()))
+			schedErr, schedRunErr := vmiSchedulingError(probeCtx, client, ns, string(obj.GetUID()))
 			cancel()
-			return false, errors.Join(fmt.Errorf("VMI %s failed", obj.GetName()), schedErr)
+			return false, errors.Join(fmt.Errorf("VMI %s failed", obj.GetName()), schedErr, schedRunErr)
 		}
 		return false, nil
 	}
 }
 
-func labelListWatch(ctx context.Context, client dynamic.Interface, ns, selector string) *cache.ListWatch {
+func labelListWatch(ctx context.Context, client dynamic.Interface, ns, selector string) (*cache.ListWatch, <-chan error) {
+	// UntilWithSync retries API errors; retain one so a timeout preserves its cause.
+	apiErrors := make(chan error, 1)
+	record := func(err error) {
+		if err != nil {
+			select {
+			case apiErrors <- err:
+			default:
+			}
+		}
+	}
+	res := client.Resource(VMIGVR).Namespace(ns)
 	return &cache.ListWatch{
 		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
 			opts.LabelSelector = selector
-			return client.Resource(VMIGVR).Namespace(ns).List(ctx, opts)
+			obj, err := res.List(ctx, opts)
+			record(err)
+			return obj, err
 		},
 		WatchFunc: func(opts metav1.ListOptions) (k8swatch.Interface, error) {
 			opts.LabelSelector = selector
-			return client.Resource(VMIGVR).Namespace(ns).Watch(ctx, opts)
+			watcher, err := res.Watch(ctx, opts)
+			record(err)
+			return watcher, err
 		},
+	}, apiErrors
+}
+
+func probeStartupErrors(ctx context.Context, client dynamic.Interface, ns string, pending map[string]bool) (schedErrs, apiErrs error) {
+	res := client.Resource(VMIGVR).Namespace(ns)
+	for name := range pending {
+		probeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		vmiObj, err := res.Get(probeCtx, name, metav1.GetOptions{})
+		if err != nil {
+			apiErrs = errors.Join(apiErrs, fmt.Errorf("read VMI %s startup status: %w", name, err))
+			cancel()
+			continue
+		}
+		schedErr, runErr := vmiSchedulingError(probeCtx, client, ns, string(vmiObj.GetUID()))
+		schedErrs = errors.Join(schedErrs, schedErr)
+		apiErrs = errors.Join(apiErrs, runErr)
+		cancel()
 	}
+	return
 }
 
 // Read current scheduling status, not historical FailedScheduling events.
-func vmiSchedulingError(ctx context.Context, client dynamic.Interface, namespace, uid string) error {
+func vmiSchedulingError(ctx context.Context, client dynamic.Interface, namespace, uid string) (schedulingErr, runErr error) {
 	pods, err := client.Resource(corev1.SchemeGroupVersion.WithResource("pods")).Namespace(namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: "kubevirt.io=virt-launcher,kubevirt.io/created-by=" + uid,
 	})
 	if err != nil {
-		return fmt.Errorf("read launcher scheduling status: %w", err)
+		return nil, fmt.Errorf("read launcher scheduling status: %w", err)
 	}
 	for _, obj := range pods.Items {
 		var pod corev1.Pod
 		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &pod); err != nil {
-			return fmt.Errorf("decode launcher pod %s: %w", obj.GetName(), err)
+			return nil, fmt.Errorf("decode launcher pod %s: %w", obj.GetName(), err)
 		}
 		for _, condition := range pod.Status.Conditions {
 			if condition.Type == corev1.PodScheduled && condition.Status == corev1.ConditionFalse {
-				return fmt.Errorf("launcher pod %s: %s: %s", pod.Name, condition.Reason, condition.Message)
+				return fmt.Errorf("launcher pod %s: %s: %s", pod.Name, condition.Reason, condition.Message), nil
 			}
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func vmiObject(vmi VMI) (*unstructured.Unstructured, error) {

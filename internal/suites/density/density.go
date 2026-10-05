@@ -2,6 +2,7 @@ package density
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -150,12 +151,15 @@ func (s *DensitySuite) warmup(ctx context.Context, spec resource.VMI, namespace,
 
 func (s *DensitySuite) createVMIsUntilFailure(ctx context.Context, o Options, namespace, runID, etcdNS string) (*pkgsuites.CaseResult, *pkgsuites.CapacityResult) {
 	start := time.Now()
-	maxReady, err := s.createVMIsInBatches(ctx, o, namespace, runID, etcdNS)
+	maxReady, capacityStop, runErr := s.createVMIsInBatches(ctx, o, namespace, runID, etcdNS)
 	capResult := &pkgsuites.CapacityResult{Resource: "virtualmachineinstances.kubevirt.io", Max: maxReady}
-	if err != nil {
-		capResult.Err = err.Error()
+	if capacityStop != nil {
+		capResult.Err = capacityStop.Error()
 	}
 	result := pkgsuites.NewCaseResult("vmi-create", start, time.Now(), nil, nil)
+	if runErr != nil {
+		result.Err = runErr.Error()
+	}
 	result.CapacityResults = []*pkgsuites.CapacityResult{capResult}
 	result.FinalizeState()
 	return result, capResult
@@ -184,9 +188,6 @@ func (s *DensitySuite) healthPods(ctx context.Context, etcdNS string) ([]corev1.
 			pods = append(pods, pod)
 		}
 	}
-	if len(pods) == len(controlPlane.Items) {
-		return nil, fmt.Errorf("no Harvester/KubeVirt service pods found")
-	}
 	return pods, nil
 }
 
@@ -194,6 +195,9 @@ func (s *DensitySuite) captureBaseline(ctx context.Context, etcdNS string) (heal
 	pods, err := s.healthPods(ctx, etcdNS)
 	if err != nil {
 		return healthBaseline{}, fmt.Errorf("capture baseline: %w", err)
+	}
+	if !slices.ContainsFunc(pods, func(pod corev1.Pod) bool { return pod.Namespace == "harvester-system" }) {
+		return healthBaseline{}, fmt.Errorf("capture baseline: no Harvester/KubeVirt service pods found")
 	}
 	b := healthBaseline{restarts: make(map[string]int32, len(pods)*2), containers: make(map[string]bool)}
 	for _, pod := range pods {
@@ -205,26 +209,37 @@ func (s *DensitySuite) captureBaseline(ctx context.Context, etcdNS string) (heal
 	return b, nil
 }
 
-func (s *DensitySuite) checkClusterHealth(ctx context.Context, baseline healthBaseline, etcdNS string) error {
+// checkClusterHealth maps observed unhealthy state to a capacity stop.
+// Failures to complete the inspection are run errors.
+func (s *DensitySuite) checkClusterHealth(ctx context.Context, baseline healthBaseline, etcdNS string) (capacityStop, runErr error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	if err := s.checkNodes(ctx); err != nil {
-		return err
+	unhealthy, err := s.checkNodes(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if unhealthy != nil {
+		return unhealthy, nil
 	}
 	if _, _, err := pkgk8s.EnsureEtcdReady(ctx, s.Clients, etcdNS, 30*time.Second); err != nil {
-		return fmt.Errorf("etcd not ready: %w", err)
+		return nil, fmt.Errorf("etcd not ready: %w", err)
 	}
-	return s.checkControlPlanePods(ctx, baseline, etcdNS)
+	unhealthy, err = s.checkControlPlanePods(ctx, baseline, etcdNS)
+	if err != nil {
+		return nil, err
+	}
+	return unhealthy, nil
 }
 
-func (s *DensitySuite) checkNodes(ctx context.Context) error {
+// checkNodes returns an observed unhealthy state or an inspection error.
+func (s *DensitySuite) checkNodes(ctx context.Context) (unhealthy, err error) {
 	nodes, err := s.K8sClientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return fmt.Errorf("list nodes: %w", err)
+		return nil, fmt.Errorf("list nodes: %w", err)
 	}
 	if len(nodes.Items) == 0 {
-		return fmt.Errorf("no nodes found")
+		return nil, fmt.Errorf("no nodes found")
 	}
 	for _, node := range nodes.Items {
 		ready := false
@@ -236,32 +251,33 @@ func (s *DensitySuite) checkNodes(ctx context.Context) error {
 				cond.Type == corev1.NodeDiskPressure ||
 				cond.Type == corev1.NodePIDPressure) &&
 				cond.Status != corev1.ConditionFalse {
-				return fmt.Errorf("node %s: %s condition %s", node.Name, cond.Type, cond.Status)
+				return fmt.Errorf("node %s: %s condition %s", node.Name, cond.Type, cond.Status), nil
 			}
 		}
 		if !ready {
-			return fmt.Errorf("node %s is not Ready", node.Name)
+			return fmt.Errorf("node %s is not Ready", node.Name), nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
-func (s *DensitySuite) checkControlPlanePods(ctx context.Context, baseline healthBaseline, etcdNS string) error {
+// checkControlPlanePods returns an observed unhealthy state or an inspection error.
+func (s *DensitySuite) checkControlPlanePods(ctx context.Context, baseline healthBaseline, etcdNS string) (unhealthy, err error) {
 	pods, err := s.healthPods(ctx, etcdNS)
 	if err != nil {
-		return fmt.Errorf("list health pods: %w", err)
+		return nil, fmt.Errorf("list health pods: %w", err)
 	}
 	seen := make(map[string]bool, len(baseline.containers))
 	for _, pod := range pods {
 		if pod.Status.Phase != corev1.PodRunning || !podutils.IsPodReady(&pod) || pod.DeletionTimestamp != nil {
-			return fmt.Errorf("pod %s/%s is not Running and Ready", pod.Namespace, pod.Name)
+			return fmt.Errorf("pod %s/%s is not Running and Ready", pod.Namespace, pod.Name), nil
 		}
 		for _, cs := range pod.Status.ContainerStatuses {
 			seen[pod.Namespace+"/"+cs.Name] = true
 			key := pod.Namespace + "/" + pod.Name + "/" + string(pod.UID) + "/" + cs.Name
 			if previous, ok := baseline.restarts[key]; ok {
 				if delta := cs.RestartCount - previous; delta > 0 {
-					return fmt.Errorf("health container %s restarted %d times during run", key, delta)
+					return fmt.Errorf("health container %s restarted %d times during run", key, delta), nil
 				}
 			} else {
 				baseline.restarts[key] = cs.RestartCount
@@ -270,24 +286,30 @@ func (s *DensitySuite) checkControlPlanePods(ctx context.Context, baseline healt
 	}
 	for service := range baseline.containers {
 		if !seen[service] {
-			return fmt.Errorf("health service %s disappeared during run", service)
+			return fmt.Errorf("health service %s disappeared during run", service), nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
-func (s *DensitySuite) createVMIsInBatches(ctx context.Context, o Options, namespace, runID, etcdNS string) (int, error) {
+// createVMIsInBatches returns either a capacity stop or an execution failure.
+// At most one of capacityStop and runErr is non-nil.
+func (s *DensitySuite) createVMIsInBatches(ctx context.Context, o Options, namespace, runID, etcdNS string) (maxReady int, capacityStop, runErr error) {
 	baselineCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	baseline, err := s.captureBaseline(baselineCtx, etcdNS)
 	cancel()
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
-	if err := s.checkClusterHealth(ctx, baseline, etcdNS); err != nil {
-		return 0, err
+	preflightStop, err := s.checkClusterHealth(ctx, baseline, etcdNS)
+	if err != nil {
+		return 0, nil, err
+	}
+	if preflightStop != nil {
+		// An unhealthy starting state is a failed run, before any capacity is measured.
+		return 0, nil, preflightStop
 	}
 
-	var maxReady int
 	for ctx.Err() == nil {
 		batchSize := o.BatchSize
 		if o.MaxVMs > 0 {
@@ -305,33 +327,52 @@ func (s *DensitySuite) createVMIsInBatches(ctx context.Context, o Options, names
 		for i, v := range vmis {
 			vmiNames[i] = v.Name
 		}
-		var batchErr error
-		if batchErr = resource.CreateVMIs(ctx, s.DynClientSet, vmis, densityRateLimit); batchErr == nil {
-			batchCtx, batchCancel := context.WithTimeout(ctx, o.BatchWaitTimeout)
-			batchErr = resource.WaitRunning(batchCtx, s.DynClientSet, namespace, resource.RunLabel+"="+runID, vmiNames)
-			batchCancel()
+		if err := resource.CreateVMIs(ctx, s.DynClientSet, vmis, densityRateLimit); err != nil {
+			return maxReady, nil, err
+		}
+		batchCtx, batchCancel := context.WithTimeout(ctx, o.BatchWaitTimeout)
+		batchErr := resource.WaitRunning(batchCtx, s.DynClientSet, namespace, resource.RunLabel+"="+runID, vmiNames)
+		batchCancel()
+		if err := ctx.Err(); err != nil {
+			return maxReady, nil, errors.Join(err, batchErr)
+		}
+		// ErrStartupTimeout means the cluster hit a capacity ceiling;
+		// - Return as capacityStop so the caller records Max without marking the run failed.
+		// - Any other error (API failure, VMI failed, cancellation) is a run error.
+		if errors.Is(batchErr, resource.ErrStartupTimeout) {
+			return maxReady, batchErr, nil
 		}
 		if batchErr != nil {
-			return maxReady, batchErr
+			return maxReady, nil, batchErr
 		}
 
 		// Ensure the vm is up and running and stable.
 		ready, err := s.countRunningVMIs(ctx, namespace, runID)
 		if err != nil {
-			return maxReady, err
+			return maxReady, nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return maxReady, nil, err
 		}
 		if ready != maxReady+batchSize {
-			return maxReady, fmt.Errorf("%d VMIs Running, expected %d", ready, maxReady+batchSize)
+			return maxReady, fmt.Errorf("%d VMIs Running, expected %d", ready, maxReady+batchSize), nil
 		}
-		if err := s.checkClusterHealth(ctx, baseline, etcdNS); err != nil {
-			return maxReady, err
+		healthStop, healthCheckErr := s.checkClusterHealth(ctx, baseline, etcdNS)
+		if err := ctx.Err(); err != nil {
+			return maxReady, nil, errors.Join(err, healthStop, healthCheckErr)
+		}
+		if healthCheckErr != nil {
+			return maxReady, nil, healthCheckErr
+		}
+		if healthStop != nil {
+			return maxReady, healthStop, nil
 		}
 		maxReady = ready
 		if o.MaxVMs > 0 && maxReady >= o.MaxVMs {
-			return maxReady, nil
+			return maxReady, nil, nil
 		}
 	}
-	return maxReady, ctx.Err()
+	return maxReady, nil, ctx.Err()
 }
 
 func (s *DensitySuite) countRunningVMIs(ctx context.Context, namespace, runID string) (int, error) {

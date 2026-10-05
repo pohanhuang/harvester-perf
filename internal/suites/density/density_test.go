@@ -2,6 +2,7 @@ package density
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -78,9 +79,9 @@ func TestCreateVMIsInBatchesStopsOnFailure(t *testing.T) {
 	dyn := dynfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), map[schema.GroupVersionResource]string{resource.VMIGVR: "VirtualMachineInstanceList", corev1.SchemeGroupVersion.WithResource("pods"): "PodList"})
 	s := &DensitySuite{Clients: &pkgsuites.Clients{DynClientSet: dyn, K8sClientSet: healthyClient()}}
 	o := Options{BatchSize: 2, BatchWaitTimeout: 100 * time.Millisecond, VMI: resource.VMI{ContainerDisk: "img", Memory: "64Mi", CPU: "100m"}}
-	max, err := s.createVMIsInBatches(context.Background(), o, "ns", "run", "kube-system")
-	if err == nil || max != 0 {
-		t.Fatalf("ramp must stop on timeout: max=%d, err=%v", max, err)
+	max, capacityStop, runErr := s.createVMIsInBatches(context.Background(), o, "ns", "run", "kube-system")
+	if !errors.Is(capacityStop, context.DeadlineExceeded) || runErr != nil || max != 0 {
+		t.Fatalf("ramp must stop on batch timeout: max=%d, capacityStop=%v, runErr=%v", max, capacityStop, runErr)
 	}
 }
 
@@ -156,11 +157,20 @@ func TestBatchCapacityOnlyAdvancesAfterFullHealthyBatch(t *testing.T) {
 					t.Fatal("unhealthy cluster must not create VMIs")
 				}
 			}
-			if capacity.Max != want || (capacity.Err != "") != (failure != "none") {
+			runFailure := failure == "create" || failure == "preflight"
+			capacityStop := failure == "pressure" || failure == "lost-running"
+			if capacity.Max != want || (capacity.Err != "") != capacityStop {
 				t.Fatalf("capacity = %+v, want Max=%d", capacity, want)
 			}
-			if result.CapacityResults[0] != capacity || result.State != pkgsuites.CaseResultStatePassed {
+			wantState := pkgsuites.CaseResultStatePassed
+			if runFailure {
+				wantState = pkgsuites.CaseResultStateErrored
+			}
+			if result.CapacityResults[0] != capacity || result.State != wantState || (result.Err != "") != runFailure {
 				t.Fatalf("capacity result = %+v", result)
+			}
+			if !strings.Contains(result.String(), "--- "+string(wantState)+" vmi-create") {
+				t.Fatalf("reported state = %s, want %s", result.String(), wantState)
 			}
 			capacity.CleanupErr = "cleanup failed"
 			result.FinalizeState()
@@ -171,8 +181,82 @@ func TestBatchCapacityOnlyAdvancesAfterFullHealthyBatch(t *testing.T) {
 	}
 }
 
+func TestRampExecutionErrorsFailCase(t *testing.T) {
+	for _, failure := range []string{"invalid-vmi", "failed-vmi", "baseline-list", "empty-baseline", "wait-list", "count-list", "health-list", "parent-cancel", "parent-deadline"} {
+		t.Run(failure, func(t *testing.T) {
+			client := healthyClient()
+			dyn := dynfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), map[schema.GroupVersionResource]string{resource.VMIGVR: "VirtualMachineInstanceList", corev1.SchemeGroupVersion.WithResource("pods"): "PodList"})
+			o := DefaultOptions()
+			o.BatchSize, o.MaxVMs, o.BatchWaitTimeout = 1, 1, 100*time.Millisecond
+			ctx := context.Background()
+			wantErr := "API unavailable"
+			apiErr := errors.New(wantErr)
+			switch failure {
+			case "invalid-vmi":
+				o.VMI.CPU = "invalid"
+				wantErr = "cpu:"
+			case "failed-vmi":
+				wantErr = "failed"
+			case "baseline-list":
+				client.PrependReactor("list", "pods", func(k8stesting.Action) (bool, runtime.Object, error) {
+					return true, nil, apiErr
+				})
+			case "empty-baseline":
+				wantErr = "no Harvester/KubeVirt service pods found"
+				client.PrependReactor("list", "pods", func(action k8stesting.Action) (bool, runtime.Object, error) {
+					return action.GetNamespace() == "harvester-system", &corev1.PodList{}, nil
+				})
+			case "wait-list", "count-list":
+				var lists int
+				dyn.PrependReactor("list", "virtualmachineinstances", func(k8stesting.Action) (bool, runtime.Object, error) {
+					lists++
+					if failure == "wait-list" || lists > 1 {
+						return true, nil, apiErr
+					}
+					return false, nil, nil
+				})
+			case "health-list":
+				var lists int
+				client.PrependReactor("list", "nodes", func(k8stesting.Action) (bool, runtime.Object, error) {
+					lists++
+					if lists > 1 {
+						return true, nil, apiErr
+					}
+					return false, nil, nil
+				})
+			case "parent-cancel":
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithCancel(ctx)
+				cancel()
+				wantErr = context.Canceled.Error()
+			case "parent-deadline":
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, 50*time.Millisecond)
+				defer cancel()
+				wantErr = context.DeadlineExceeded.Error()
+			}
+			dyn.PrependReactor("create", "virtualmachineinstances", func(action k8stesting.Action) (bool, runtime.Object, error) {
+				if failure != "wait-list" && failure != "parent-deadline" {
+					obj := action.(k8stesting.CreateAction).GetObject().(*unstructured.Unstructured)
+					phase := "Running"
+					if failure == "failed-vmi" {
+						phase = "Failed"
+					}
+					_ = unstructured.SetNestedField(obj.Object, phase, "status", "phase")
+				}
+				return false, nil, nil
+			})
+			s := &DensitySuite{Clients: &pkgsuites.Clients{DynClientSet: dyn, K8sClientSet: client}}
+			result, capacity := s.createVMIsUntilFailure(ctx, o, "ns", "run", "kube-system")
+			if result.State != pkgsuites.CaseResultStateErrored || !strings.Contains(result.Err, wantErr) || capacity.Max != 0 || capacity.Err != "" {
+				t.Fatalf("case = %+v, capacity = %+v, want execution ERROR containing %q", result, capacity, wantErr)
+			}
+		})
+	}
+}
+
 func TestHealthGate(t *testing.T) {
-	for _, failure := range []string{"none", "not-ready", "pressure", "restart", "pending", "completed", "replaced", "added", "handler-restart", "operator-pending", "deleted", "empty-services", "renamed"} {
+	for _, failure := range []string{"none", "not-ready", "pressure", "restart", "pending", "completed", "replaced", "added", "handler-restart", "operator-pending", "deleted", "empty-services", "renamed", "list-nodes", "list-pods"} {
 		t.Run(failure, func(t *testing.T) {
 			client := healthyClient()
 			s := &DensitySuite{Clients: &pkgsuites.Clients{K8sClientSet: client}}
@@ -236,9 +320,20 @@ func TestHealthGate(t *testing.T) {
 					}
 				}
 			}
-			wantError := failure != "none" && failure != "replaced" && failure != "added" && failure != "renamed"
-			if err := s.checkClusterHealth(ctx, baseline, "kube-system"); (err != nil) != wantError {
-				t.Fatalf("health error = %v", err)
+			wantRunErr := failure == "list-nodes" || failure == "list-pods"
+			inspectionErr := errors.New("health API unavailable")
+			if wantRunErr {
+				client.PrependReactor("list", strings.TrimPrefix(failure, "list-"), func(k8stesting.Action) (bool, runtime.Object, error) {
+					return true, nil, inspectionErr
+				})
+			}
+			wantStop := !wantRunErr && failure != "none" && failure != "replaced" && failure != "added" && failure != "renamed"
+			capacityStop, runErr := s.checkClusterHealth(ctx, baseline, "kube-system")
+			if (capacityStop != nil) != wantStop || (runErr != nil) != wantRunErr {
+				t.Fatalf("capacityStop=%v, runErr=%v", capacityStop, runErr)
+			}
+			if wantRunErr && !errors.Is(runErr, inspectionErr) {
+				t.Fatalf("runErr=%v, want original inspection error", runErr)
 			}
 			if failure == "added" || failure == "replaced" {
 				name := pod.Name
@@ -253,8 +348,8 @@ func TestHealthGate(t *testing.T) {
 				if _, err := client.CoreV1().Pods(added.Namespace).UpdateStatus(ctx, added, metav1.UpdateOptions{}); err != nil {
 					t.Fatal(err)
 				}
-				if err := s.checkClusterHealth(ctx, baseline, "kube-system"); err == nil {
-					t.Fatal("new or replaced pod restart must fail subsequent gate")
+				if capacityStop, runErr := s.checkClusterHealth(ctx, baseline, "kube-system"); capacityStop == nil || runErr != nil {
+					t.Fatalf("new or replaced pod restart: capacityStop=%v, runErr=%v", capacityStop, runErr)
 				}
 			}
 		})
