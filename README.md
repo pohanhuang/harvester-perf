@@ -50,14 +50,9 @@ repo root to tune suite parameters before running:
 
 ```yaml
 density:
-  batchWaitTimeout: 5m     # per-batch creation timeout
-
-  vmImage:
-    url: "https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img"
-
-  vm:
-    storageClass: longhorn
-    diskSize: 1Gi
+  batchWaitTimeout: 5m     # per-batch wait timeout
+  vmi:
+    containerDisk: quay.io/kubevirt/cirros-container-disk-demo:latest
     memory: 90Mi
     cpu: 100m
 ```

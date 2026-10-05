@@ -17,6 +17,9 @@ type Options struct {
 }
 
 func (o Options) Validate() error {
+	if o.MaxVMs < 0 {
+		return fmt.Errorf("maxVMs must be non-negative, got %d", o.MaxVMs)
+	}
 	if o.BatchSize <= 0 {
 		return fmt.Errorf("batchSize must be positive, got %d", o.BatchSize)
 	}

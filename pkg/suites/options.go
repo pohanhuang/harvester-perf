@@ -29,5 +29,15 @@ func DefaultGlobalOptions() *Options {
 		"PodImageName":                    "registry.suse.com/bci/bci-base",
 		"PodImageTag":                     "latest",
 		"PodReadyTimeout":                 3600 * time.Second,
+		"density": map[string]any{
+			"batchSize":        10,
+			"maxVMs":           0,
+			"batchWaitTimeout": 5 * time.Minute,
+			"vmi": map[string]any{
+				"containerDisk": "quay.io/kubevirt/cirros-container-disk-demo:latest",
+				"memory":        "90Mi",
+				"cpu":           "100m",
+			},
+		},
 	}
 }

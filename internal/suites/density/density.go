@@ -80,6 +80,7 @@ type densityGlobalOpts struct {
 }
 
 func (s *DensitySuite) RunE(ctx context.Context, runID, namespace string, opts pkgsuites.Options) (result pkgsuites.SuiteResult) {
+	result = pkgsuites.SuiteResult{Name: s.Name(), RunID: runID}
 	global, err := pkgoptions.FromOptions[densityGlobalOpts](&opts)
 	if err != nil {
 		result.Err = err.Error()
@@ -90,7 +91,6 @@ func (s *DensitySuite) RunE(ctx context.Context, runID, namespace string, opts p
 		result.Err = err.Error()
 		return result
 	}
-	result = pkgsuites.SuiteResult{Name: s.Name(), RunID: runID}
 	if err := o.Validate(); err != nil {
 		result.Err = err.Error()
 		return result
