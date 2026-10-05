@@ -327,7 +327,7 @@ func TestHealthGate(t *testing.T) {
 					return true, nil, inspectionErr
 				})
 			}
-			wantStop := !wantRunErr && failure != "none" && failure != "replaced" && failure != "added" && failure != "renamed"
+			wantStop := !wantRunErr && failure != "none" && failure != "replaced" && failure != "added"
 			capacityStop, runErr := s.checkClusterHealth(ctx, baseline, "kube-system")
 			if (capacityStop != nil) != wantStop || (runErr != nil) != wantRunErr {
 				t.Fatalf("capacityStop=%v, runErr=%v", capacityStop, runErr)

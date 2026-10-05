@@ -203,7 +203,7 @@ func (s *DensitySuite) captureBaseline(ctx context.Context, etcdNS string) (heal
 	for _, pod := range pods {
 		for _, cs := range pod.Status.ContainerStatuses {
 			b.restarts[pod.Namespace+"/"+pod.Name+"/"+string(pod.UID)+"/"+cs.Name] = cs.RestartCount
-			b.containers[pod.Namespace+"/"+pod.Name+"/"+string(pod.UID)+"/"+cs.Name] = true
+			b.containers[pod.Namespace+"/"+pod.Name+"/"+cs.Name] = true
 		}
 	}
 	return b, nil
@@ -273,14 +273,15 @@ func (s *DensitySuite) checkControlPlanePods(ctx context.Context, baseline healt
 			return fmt.Errorf("pod %s/%s is not Running and Ready", pod.Namespace, pod.Name), nil
 		}
 		for _, cs := range pod.Status.ContainerStatuses {
-			seen[pod.Namespace+"/"+pod.Name+"/"+string(pod.UID)+"/"+cs.Name] = true
-			key := pod.Namespace + "/" + pod.Name + "/" + string(pod.UID) + "/" + cs.Name
-			if previous, ok := baseline.restarts[key]; ok {
+			presenceKey := pod.Namespace + "/" + pod.Name + "/" + cs.Name
+			seen[presenceKey] = true
+			restartKey := pod.Namespace + "/" + pod.Name + "/" + string(pod.UID) + "/" + cs.Name
+			if previous, ok := baseline.restarts[restartKey]; ok {
 				if delta := cs.RestartCount - previous; delta > 0 {
-					return fmt.Errorf("health container %s restarted %d times during run", key, delta), nil
+					return fmt.Errorf("health container %s restarted %d times during run", restartKey, delta), nil
 				}
 			} else {
-				baseline.restarts[key] = cs.RestartCount
+				baseline.restarts[restartKey] = cs.RestartCount
 			}
 		}
 	}
