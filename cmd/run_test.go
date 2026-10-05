@@ -7,52 +7,36 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/harvester/hvperf/internal/suites/density"
-	pkgoptions "github.com/harvester/hvperf/internal/suites/options"
 	"github.com/harvester/hvperf/pkg/suites"
 )
 
-func TestLoadRunOptionsParsesDensity(t *testing.T) {
+func TestLoadRunOptionsOverridesGlobalsAndPreservesSections(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "hvperf.yaml")
-	yaml := "density:\n  batchWaitTimeout: 90s\n  vmi:\n    cpu: 200m\n    memory: 90Mi\nother-suite:\n  nested:\n    enabled: true\n"
-	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+	config := `
+EtcdNamespace: custom-etcd
+example-suite:
+  enabled: true
+  workload:
+    name: sample
+`
+	if err := os.WriteFile(path, []byte(config), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	opts, err := loadRunOptions(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	section, ok := opts["density"]
-	if !ok {
-		t.Fatal("density key missing")
+
+	want := *suites.DefaultGlobalOptions()
+	want["EtcdNamespace"] = "custom-etcd"
+	want["example-suite"] = suites.Options{
+		"enabled": true,
+		"workload": suites.Options{
+			"name": "sample",
+		},
 	}
-	m, ok := section.(suites.Options)
-	if !ok {
-		t.Fatalf("density section type = %T", section)
-	}
-	vmi, _ := m["vmi"].(suites.Options)
-	if m["batchWaitTimeout"] != "90s" || vmi["cpu"] != "200m" || vmi["memory"] != "90Mi" {
-		t.Fatalf("density options = %#v", m)
-	}
-	decoded, err := pkgoptions.DecodeSection[density.Options](opts, "density")
-	if err != nil || decoded.BatchWaitTimeout.String() != "1m30s" || decoded.VMI.CPU != "200m" {
-		t.Fatalf("decoded density = %+v, err = %v", decoded, err)
-	}
-	other, err := pkgoptions.DecodeSection[suites.Options](opts, "other-suite")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if other["nested"].(suites.Options)["enabled"] != true {
-		t.Fatalf("additional suite = %#v", other)
-	}
-	global, err := pkgoptions.FromOptions[struct{ EtcdNamespace string }](&opts)
-	if err != nil || global.EtcdNamespace != "kube-system" {
-		t.Fatalf("global options = %+v, err = %v", global, err)
-	}
-	for key, want := range *suites.DefaultGlobalOptions() {
-		if opts[key] != want {
-			t.Fatalf("global option %s changed: %v", key, opts[key])
-		}
+	if !reflect.DeepEqual(opts, want) {
+		t.Fatalf("options:\n got  %#v\n want %#v", opts, want)
 	}
 }
 

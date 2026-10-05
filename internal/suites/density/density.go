@@ -86,7 +86,7 @@ func (s *DensitySuite) RunE(ctx context.Context, runID, namespace string, opts p
 		result.Err = err.Error()
 		return result
 	}
-	o, err := pkgoptions.DecodeSection[Options](opts, s.Name())
+	o, err := pkgoptions.DecodeSection(opts, s.Name(), DefaultOptions())
 	if err != nil {
 		result.Err = err.Error()
 		return result

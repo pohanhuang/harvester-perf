@@ -10,10 +10,22 @@ import (
 
 // Options is the density block of hvperf.yaml.
 type Options struct {
-	BatchSize    int           `yaml:"batchSize"`
-	MaxVMs       int           `yaml:"maxVMs"`
+	BatchSize        int           `yaml:"batchSize"`
+	MaxVMs           int           `yaml:"maxVMs"`
 	BatchWaitTimeout time.Duration `yaml:"batchWaitTimeout"`
-	VMI          resource.VMI  `yaml:"vmi"`
+	VMI              resource.VMI  `yaml:"vmi"`
+}
+
+func DefaultOptions() Options {
+	return Options{
+		BatchSize:        10,
+		BatchWaitTimeout: 5 * time.Minute,
+		VMI: resource.VMI{
+			ContainerDisk: "quay.io/kubevirt/cirros-container-disk-demo:latest",
+			Memory:        "90Mi",
+			CPU:           "100m",
+		},
+	}
 }
 
 func (o Options) Validate() error {
