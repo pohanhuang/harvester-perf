@@ -203,7 +203,7 @@ func (s *DensitySuite) captureBaseline(ctx context.Context, etcdNS string) (heal
 	for _, pod := range pods {
 		for _, cs := range pod.Status.ContainerStatuses {
 			b.restarts[pod.Namespace+"/"+pod.Name+"/"+string(pod.UID)+"/"+cs.Name] = cs.RestartCount
-			b.containers[pod.Namespace+"/"+cs.Name] = true
+			b.containers[pod.Namespace+"/"+pod.Name+"/"+string(pod.UID)+"/"+cs.Name] = true
 		}
 	}
 	return b, nil
@@ -273,7 +273,7 @@ func (s *DensitySuite) checkControlPlanePods(ctx context.Context, baseline healt
 			return fmt.Errorf("pod %s/%s is not Running and Ready", pod.Namespace, pod.Name), nil
 		}
 		for _, cs := range pod.Status.ContainerStatuses {
-			seen[pod.Namespace+"/"+cs.Name] = true
+			seen[pod.Namespace+"/"+pod.Name+"/"+string(pod.UID)+"/"+cs.Name] = true
 			key := pod.Namespace + "/" + pod.Name + "/" + string(pod.UID) + "/" + cs.Name
 			if previous, ok := baseline.restarts[key]; ok {
 				if delta := cs.RestartCount - previous; delta > 0 {

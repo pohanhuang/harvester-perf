@@ -127,7 +127,7 @@ func labelListWatch(ctx context.Context, client dynamic.Interface, ns, selector 
 	// UntilWithSync retries API errors; retain one so a timeout preserves its cause.
 	apiErrors := make(chan error, 1)
 	record := func(err error) {
-		if err != nil {
+		if err != nil && ctx.Err() == nil {
 			select {
 			case apiErrors <- err:
 			default:
@@ -153,8 +153,9 @@ func labelListWatch(ctx context.Context, client dynamic.Interface, ns, selector 
 
 func probeStartupErrors(ctx context.Context, client dynamic.Interface, ns string, pending map[string]bool) (schedErrs, apiErrs error) {
 	res := client.Resource(VMIGVR).Namespace(ns)
+	probeDeadline := time.Now().Add(5 * time.Second)
 	for name := range pending {
-		probeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		probeCtx, cancel := context.WithDeadline(context.WithoutCancel(ctx), probeDeadline)
 		vmiObj, err := res.Get(probeCtx, name, metav1.GetOptions{})
 		if err != nil {
 			apiErrs = errors.Join(apiErrs, fmt.Errorf("read VMI %s startup status: %w", name, err))
